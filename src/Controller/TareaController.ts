@@ -1,39 +1,73 @@
 import { Request, Response } from "express"
 import { Tarea } from "../Model/Tarea"
+import {  PrismaClient } from "@prisma/client";
 
-const tareas: Tarea[] = [];
+const   prisma = new PrismaClient();
 
-const crearTarea = (request: Request, response: Response) => {
-  const { nombre } = request.body;
-  const nuevaTarea: Tarea = {
-    id: tareas.length + 1,
-    nombre,
-    completado: false
-  }
-  tareas.push(nuevaTarea)
-  response.status(201).json({ message: "Tarea creada correctamente", tarea: nuevaTarea })
-}
-
-const obtenerTareas = (request: Request, response: Response) => {
+const tareas:Tarea[] = []
+const crearTarea = async (request: Request, response: Response) => {
   try {
+    const { nombre } = request.body;
+    
+    // Validación del nombre de la tarea
+    if (!nombre || nombre.trim() === "") {
+      return response.status(400).json({ mensaje: "Debes proporcionar un nombre válido para la tarea" });
+    }
+
+    // Crear la tarea utilizando Prisma
+    const nuevaTarea:Tarea = await prisma.tarea.create({
+      data: {
+        nombre: nombre.trim(),
+        completado: false // Guarda el nombre sin espacios al inicio o final
+      }
+    });
+
+    // Respuesta exitosa
+    response.status(201).json({ message: "Tarea creada correctamente", tarea: nuevaTarea });
+  } catch (error) {
+    // Manejo de errores
+    console.error("Error al crear la tarea:", error);
+    response.status(500).json({ message: "Error al crear la tarea", error });
+  } finally {
+    // Cerrar la conexión de Prisma al finalizar
+    await prisma.$disconnect();
+  }
+};
+
+const obtenerTareas = async (request: Request, response: Response) => {
+  try {
+    const tareas:Tarea[] = await prisma.tarea.findMany();
+
+    if (!tareas) {
+      return response.status(404).json({ message: "debes de ingresar una tarea" });
+    }
+
     response.status(201).json({ message: "Lista de tareas", tareas})
+    await prisma.$disconnect();
   } catch (error) {
     
   }
 }
 
-const obtenerTarea = (request: Request, response: Response) => {
+const obtenerTarea = async (request: Request, response: Response) => {
   const { id } = request.params;
-  const tarea = tareas.find(t => t.id === parseInt(id));
+  const tareaId = parseInt(id);
+
+  const tarea: Tarea | null = await prisma.tarea.findUnique({
+    where: {
+      id : tareaId
+    }
+  })
 
   if (!tarea) {
     return response.status(404).json({ message: "Tarea no encontrada" });
   }
 
   response.status(200).json(tarea);
+  await prisma.$disconnect();
 };
 
-const eliminarTarea = (request: Request,response: Response) => {
+const eliminarTarea = async (request: Request,response: Response) => {
   try {
     //obteniendo valor de la url
     const { id } = request.params;
@@ -47,18 +81,20 @@ const eliminarTarea = (request: Request,response: Response) => {
     if (tareaId === -1) {
       return response.status(404).json({"mensaje":"tarea no encontrada"})
     }
-    //obteniendo el indecide el objeto
-    const tareaIndex = tareas.findIndex(t=> t.id === tareaId)
-    //eliminandolo del arreglo
-    tareas.splice(tareaIndex,1)
+    
+    const tarea = await prisma.tarea.delete({
+      where:{
+        id: tareaId
+      }
+    })
 
-    return response.status(200).json({"mensaje":"tarea eliminada correctamente", tareas})
+    return response.status(200).json({"mensaje":"tarea eliminada correctamente", tarea})
   } catch (error) {
     
   }
 }
 
-const actualizar = (request: Request, response: Response) => {
+const actualizar = async (request: Request, response: Response) => {
   try {
     const { id } = request.params;
     const { nombre, completado } = request.body;
@@ -68,17 +104,14 @@ const actualizar = (request: Request, response: Response) => {
       return response.status(400).json({ message: "ID inválido" });
     }
 
-    const tarea = tareas.find(t => t.id === tareaId);
-    if (!tarea) {
-      return response.status(404).json({ message: "Tarea no encontrada" });
-    }
-
-    if (nombre !== undefined) {
-      tarea.nombre = nombre;
-    }
-    if (completado !== undefined) {
-      tarea.completado = completado;
-    }
+    const tarea:Tarea  = await prisma.tarea.update({
+      where: {
+        id: tareaId
+      },data:{
+        nombre:nombre,
+        completado:completado
+      }
+    })
 
     response.status(200).json({ message: "Tarea actualizada correctamente", tarea });
   } catch (error) {
