@@ -1,6 +1,8 @@
 import express,{ Request, Response }  from "express";
 import dotenv from "dotenv"
 import router from "./routes/TareasRoutes";
+import userRouter from "./routes/UserRoute";
+
 
 dotenv.config()
 const app = express();
@@ -8,6 +10,8 @@ app.use(express.json());
 
 
 app.use("/tarea",router)
+app.use("/",userRouter)
+
 
 const PORT = process.env.PORT;
 

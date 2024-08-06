@@ -1,5 +1,6 @@
 import {  Router } from "express";
 import { actualizar, crearTarea, eliminarTarea, obtenerTarea, obtenerTareas } from "../Controller/TareaController";
+import auth from "../middleware/auth";
 
 
 const router = Router();
@@ -7,7 +8,7 @@ const router = Router();
 
 router.post("/create",crearTarea)
 
-router.get("/getAll",obtenerTareas)
+router.get("/getAll",auth, obtenerTareas)
 
 router.get("/get/:id", obtenerTarea);
 

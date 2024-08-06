@@ -4,7 +4,6 @@ import {  PrismaClient } from "@prisma/client";
 
 const   prisma = new PrismaClient();
 
-const tareas:Tarea[] = []
 const crearTarea = async (request: Request, response: Response) => {
   try {
     const { nombre } = request.body;
