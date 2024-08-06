@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { Tarea } from "../Model/Tarea"
+import { Tarea, TareaDTO } from "../Model/Tarea"
 import {  PrismaClient } from "@prisma/client";
 
 const   prisma = new PrismaClient();
@@ -14,9 +14,9 @@ const crearTarea = async (request: Request, response: Response) => {
     }
 
     // Crear la tarea utilizando Prisma
-    const nuevaTarea:Tarea = await prisma.tarea.create({
+    const nuevaTarea:TareaDTO = await prisma.tarea.create({
       data: {
-        nombre: nombre.trim(),
+        nombre: nombre,
         completado: false // Guarda el nombre sin espacios al inicio o final
       }
     });
