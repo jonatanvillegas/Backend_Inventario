@@ -14,18 +14,48 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model Tarea {
-  id      Int      @id @default(autoincrement())
-  nombre    String
-  completado Boolean
-  autor User @relation(fields: [autorId], references: [id])
-  autorId Int
+model Producto {
+  id          Int       @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  precio      Float
+  stock       Int       @default(0)
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  categoriaId Int
+  imagen      String?    // Almacena la imagen como un array de bytes (puede ser null)
+  createdAt   DateTime  @default(now())
+}
+
+model Categoria {
+  id        Int        @id @default(autoincrement())
+  nombre    String     @unique
+  productos Producto[]
 }
 
 model User {
   id       Int      @id @default(autoincrement())
   email    String   @unique
   password String   @db.VarChar(255)
-  nombre    String?
-  Tareas    Tarea[]
+  nombre   String?
+  role     Role     @default(USER)
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+//creando modelo de vista [npx prisma generate]
+model Producto_V {
+  id              Int?
+  nombre          String?
+  descripcion     String?
+  precio         Float?
+  stock          Int?
+  createdAt       DateTime?
+  imagen         Bytes?
+  categoria_nombre String?
+  
+  @@ignore
 }

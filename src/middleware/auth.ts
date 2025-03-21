@@ -3,10 +3,7 @@ import jwt from "../utils/jwt";
 
 export default (req:Request,res:Response, next:NextFunction)=>{
      const token = req.headers.authorization?.split(" ")[1];
-   console.log(token)
-     if (
-        !token 
-     ) {
+     if (!token ) {
         return res.status(400).json({"mensaje":"Token invalido"})
      }
      try {
@@ -14,9 +11,7 @@ export default (req:Request,res:Response, next:NextFunction)=>{
         res.locals.payload = data
       
         return next();
-     } catch (
-        error
-     ) {
+     } catch (error) {
         return res.status(500).json({"mensaje":"invalido"})
      }
 }
