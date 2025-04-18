@@ -1,11 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
 }
 
 datasource db {
@@ -20,10 +15,10 @@ model Producto {
   descripcion String?
   precio      Float
   stock       Int       @default(0)
-  categoria   Categoria @relation(fields: [categoriaId], references: [id])
   categoriaId Int
-  imagen      String?    // Almacena la imagen como un array de bytes (puede ser null)
   createdAt   DateTime  @default(now())
+  imagen      String?
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
 }
 
 model Categoria {
@@ -33,29 +28,70 @@ model Categoria {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  email    String   @unique
-  password String   @db.VarChar(255)
-  nombre   String?
-  role     Role     @default(USER)
-  createdAt DateTime @default(now())
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String     @db.VarChar(255)
+  nombre    String?
+  role      Role
+  createdAt DateTime   @default(now())
+  permisos  Permiso[]  // Relación con la tabla de permisos
+}
+
+
+model Empresa {
+  id           Int     @id @default(autoincrement())
+  nombre       String
+  descripcion  String?
+  email        String
+  telefono     String
+  direccion    String?
+  ciudad       String?
+  CodigoPostal Int?
+  limitStock   Int
+  paginacion   Int?    @default(25)
+}
+
+view Producto_V {
+  id               Int       @id
+  nombre           String?
+  descripcion      String?
+  precio           Float?
+  stock            Int?
+  createdAt        DateTime?
+  imagen           String?
+  categoriaId      Int?
+  categoria_nombre String?
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view categoria_v {
+  id               Int     @id
+  nombre           String?
+  productosenstock Int?
 }
 
 enum Role {
   ADMIN
   USER
 }
+model Navegacion {
+  id        Int        @id @default(autoincrement())
+  nombre    String
+  ruta      String     // Ruta para acceder al módulo
+  icono     String     // Ícono representativo del módulo
+  permisos  Permiso[]  // Relación con la tabla de permisos
+}
+model Permiso {
+  id             Int      @id @default(autoincrement())
+  usuarioId      Int
+  navegacionId   Int
+  ver            Boolean  @default(false)
+  editar         Boolean  @default(false)
+  eliminar       Boolean  @default(false)
+  crear          Boolean  @default(false)
 
-//creando modelo de vista [npx prisma generate]
-model Producto_V {
-  id              Int?
-  nombre          String?
-  descripcion     String?
-  precio         Float?
-  stock          Int?
-  createdAt       DateTime?
-  imagen         Bytes?
-  categoria_nombre String?
-  
-  @@ignore
+  usuario        User     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  navegacion     Navegacion @relation(fields: [navegacionId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, navegacionId]) // Evita duplicados
 }

@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+import bcrypt from 'bcrypt'
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import jwt from "../utils/jwt";
@@ -21,7 +21,8 @@ class AuthController {
         ) {
             return res.status(404).json({"mensaje":"usuario no encontrado"});
         }
-        const validacionPassword = bcrypt.compare(password, user.password);
+
+        const validacionPassword = await bcrypt.compare(password, user.password);
 
         if (!validacionPassword) {
             return res.status(500).json({"mensaje":"password invalida"})

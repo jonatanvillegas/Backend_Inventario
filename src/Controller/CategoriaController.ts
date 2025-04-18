@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { Categoria, CategoriaDTO } from "../Model/Categoria";
-import { PrismaClient } from "@prisma/client";
+import { categoria_v, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -15,12 +15,13 @@ class CategoriaController {
       }
 
       // Crear la Categoria utilizando Prisma
-      const NuevaCategoria: CategoriaDTO = await prisma.categoria.create({
+      const NuevaCategoria:CategoriaDTO = await prisma.categoria.create({
         data: {
           nombre: nombre,
         }
       });
-
+      
+      console.log(NuevaCategoria)
       // Respuesta exitosa
       response.status(201).json({ message: "Categoria creada correctamente", Categoria: NuevaCategoria });
     } catch (error) {
@@ -35,13 +36,20 @@ class CategoriaController {
 
   async obtenerCategorias (request: Request, response: Response) {
     try {
-      const Categorias: Categoria[] = await prisma.categoria.findMany();
+
+      const Categorias:categoria_v[] = await prisma.$queryRaw<categoria_v[]>`
+      SELECT * FROM "categoria_v"`;
 
       if (!Categorias) {
         return response.status(404).json({ message: "debes de ingresar una Categoria" });
       }
 
-      response.status(201).json({ message: "Lista de Categorias", Categorias })
+      const categoriasTransformadas = Categorias.map(cat => ({
+        ...cat,
+        productosenstock: Number(cat.productosenstock), // Convertir BigInt a Number
+      }));
+      
+      response.status(201).json( categoriasTransformadas )
       await prisma.$disconnect();
     } catch (error) {
 
@@ -96,7 +104,7 @@ class CategoriaController {
   async actualizarCategoria (request: Request, response: Response) {
     try {
       const { id } = request.params;
-      const { nombre, completado } = request.body;
+      const { nombre } = request.body;
       const categoriaId = parseInt(id);
 
       if (isNaN(categoriaId)) {
@@ -117,4 +125,5 @@ class CategoriaController {
     }
   };
 }
+  
 export default new CategoriaController();

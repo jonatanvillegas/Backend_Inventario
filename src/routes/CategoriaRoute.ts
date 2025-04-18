@@ -6,14 +6,14 @@ import verificarRol from "../middleware/autorizacionRol";
 
 const categoriaRouter = Router();
 
-categoriaRouter.post("/create",auth,verificarRol(["ADMIN"]),CategoriaController.crearCategoria)
+categoriaRouter.post("/create",auth,verificarRol(["USER","ADMIN"]),CategoriaController.crearCategoria)
 
-categoriaRouter.get("/getAll",auth, verificarRol(["USER"]),CategoriaController.obtenerCategorias)
+categoriaRouter.get("/getAll",auth,verificarRol(["USER","ADMIN"]),CategoriaController.obtenerCategorias)
 
-categoriaRouter.get("/get/:id",auth,verificarRol(["USER"]), CategoriaController.obtenerCategoria);
+categoriaRouter.get("/get/:id",auth,verificarRol(["USER","ADMIN"]), CategoriaController.obtenerCategoria);
 
 // categoriaRouter.delete("/delete/:id",eliminarTarea)
 
-categoriaRouter.put("/actualizar/:id",auth,verificarRol(["ADMIN"]),CategoriaController.actualizarCategoria)
+categoriaRouter.put("/actualizar/:id",auth,verificarRol(["USER","ADMIN"]),CategoriaController.actualizarCategoria)
 
 export default categoriaRouter

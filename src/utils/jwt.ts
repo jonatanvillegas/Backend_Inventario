@@ -10,7 +10,7 @@ interface IPayload {
 //creando y validando jwt
 export default {
     sign: (payload: IPayload) =>
-        jwt.sign(payload, SECRET, { expiresIn: '1h', algorithm: 'HS256' }),
+        jwt.sign(payload, SECRET, { expiresIn: '1d', algorithm: 'HS256' }),
 
     verify: (token: string) => jwt.verify(token, SECRET),
 };
